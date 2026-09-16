@@ -116,6 +116,13 @@ pub fn run() {
 
             // 创建迁移
             let migrations = migrations::all();
+            // 老库的校验和可能是另一种行尾算出来的，先改写成当前值；不然插件 load 时 sqlx 拒跑，
+            // 前端只能拿到一个连不上迁移的库
+            match tauri::async_runtime::block_on(migrations::repair_checksums(&db_path, &migrations)) {
+                Ok(0) => {}
+                Ok(n) => log::info!("修正迁移校验和 {} 条", n),
+                Err(e) => log::error!("修正迁移校验和失败: {}", e),
+            }
 
             // 注册 SQL 插件
             app.handle().plugin(
