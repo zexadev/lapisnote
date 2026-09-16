@@ -16,6 +16,13 @@ interface ChangelogModalProps {
 // 内置的更新日志数据
 const CHANGELOG_DATA: ChangelogEntry[] = [
   {
+    version: '3.0.1',
+    date: '2026-09-16',
+    notes: `## 🐛 修复
+- **升级后无法新建笔记、导入报 no column named uuid**：2.2.1 起改由 CI 构建，嵌入的迁移 SQL 行尾与旧版不同，校验和对不上导致迁移被拒、后续表结构没有补齐。现统一行尾，并在启动时自动修正老库的校验和，升级后首次启动自动补齐
+- **数据库初始化失败被静默吞掉**：连库失败时直接显示错误并停住，不再带着旧表结构继续运行`,
+  },
+  {
     version: '3.0.0',
     date: '2026-09-09',
     notes: `## 📱 手机端首发
