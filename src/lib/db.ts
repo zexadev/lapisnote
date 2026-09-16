@@ -5,8 +5,10 @@
 import Database from '@tauri-apps/plugin-sql'
 import { invoke } from '@tauri-apps/api/core'
 
-// 数据库实例
-let database: Database | null = null
+// 只连一次，成败都钉住：插件是先把迁移表从注册项里摘掉再执行迁移，第一次 load 因迁移失败
+// 被拒之后再 load 会不带迁移直接连上，在旧表结构上读写。并发调用共用同一个 promise，
+// 也防第二个连接抢在迁移完成前进来
+let databasePromise: Promise<Database> | null = null
 
 // 笔记数据类型
 export interface Note {
@@ -134,11 +136,13 @@ function rowToConversation(row: ConversationRow): Conversation {
  * 获取数据库实例
  */
 async function getDatabase(): Promise<Database> {
-  if (database) return database
-  
-  // 获取数据库 URL
+  if (!databasePromise) databasePromise = openDatabase()
+  return databasePromise
+}
+
+async function openDatabase(): Promise<Database> {
   const dbUrl = await invoke<string>('get_database_url')
-  database = await Database.load(dbUrl)
+  const database = await Database.load(dbUrl)
   // 开启 WAL 模式 + busy_timeout，保证前端与后端同步引擎并发写同一 db 文件时安全
   try {
     await database.execute('PRAGMA journal_mode=WAL;')

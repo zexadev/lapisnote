@@ -49,6 +49,7 @@ const SAFE_AREA_PADDING = {
 
 function App() {
   const [isReady, setIsReady] = useState(false)
+  const [initError, setInitError] = useState<string | null>(null)
   const [activeNoteId, setActiveNoteId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [localTitle, setLocalTitle] = useState('')
@@ -430,6 +431,16 @@ function App() {
   // 初始化默认数据并恢复未保存的数据
   useEffect(() => {
     const initialize = async () => {
+      // 连库失败（多半是迁移没跑完）就停在错误页，不能带着旧表结构继续跑
+      try {
+        // 回填多设备同步所需的 uuid（历史笔记），并迁移存量内嵌图片为附件
+        await initDatabase()
+      } catch (e) {
+        console.error('[App] 数据库初始化失败:', e)
+        setInitError(e instanceof Error ? e.message : String(e))
+        setIsReady(true)
+        return
+      }
       try {
         // 手机不种欢迎笔记：两条 seed 用的是固定 uuid，桌面早已把它们删掉或改过，
         // 首次同步时同 uuid 相撞——桌面的墓碑只拦「本地不存在」的 uuid，手机本地已有就会让
@@ -438,8 +449,6 @@ function App() {
         if (!isMobilePlatform) {
           await initializeDefaultNotes()
         }
-        // 回填多设备同步所需的 uuid（历史笔记），并迁移存量内嵌图片为附件
-        await initDatabase()
         // 恢复可能因意外关闭而丢失的数据
         await recoverPendingSaves()
         // 初始化后刷新笔记列表
@@ -681,6 +690,18 @@ function App() {
       toast.info(`未找到标题为「${t}」的笔记`)
     }
   }, [allNotes, handleSelectNote])
+
+  if (initError) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#F9FBFC] dark:bg-[#0B0D11]" style={SAFE_AREA_PADDING}>
+        <div className="max-w-md px-8">
+          <h1 className="text-base font-medium text-gray-900 dark:text-gray-100">数据库初始化失败</h1>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">重启应用重试。反复出现时，把下面这段信息附在反馈里。</p>
+          <pre className="mt-4 whitespace-pre-wrap break-all rounded-lg bg-gray-100 dark:bg-gray-800 p-3 text-xs text-gray-600 dark:text-gray-300">{initError}</pre>
+        </div>
+      </div>
+    )
+  }
 
   // 启动加载状态
   if (!isReady) {
