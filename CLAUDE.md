@@ -32,7 +32,7 @@
 - **本地出可独立运行的桌面调试包**：`pnpm tauri build --debug --no-bundle` → `src-tauri/target/debug/app.exe`（嵌前端、不打安装包、不要签名私钥）。**直接 `cargo build` 出的 debug exe 是 dev 模式**（tauri-build 打 `dev` cfg，`generate_context!` 不嵌前端而指向 devUrl），单独运行是空白页。只改前端后重打包无需 touch：build.rs 已登记 `rerun-if-changed=../dist`（`tauri_build::build()` 默认不跟踪 dist）
 - **文档站**：Nextra 4 (Next.js)，位于 `docs/`，静态导出；`docs/functions/api/update/` 是 Cloudflare Pages Function，反代 GitHub Release 的 latest.json 与资产（`/api/update/latest.json`、`/api/update/download/<tag>/<asset>`），手机端更新先走它。本地验：`cd docs && npx wrangler@4 pages dev out`（不用登录；产生的 `docs/.wrangler/` 已 gitignore）
 - **文档部署**：Cloudflare Pages，域名 jdnotes.zexa.cc
-- **数据库**：SQLite（通过 tauri-plugin-sql；前端 db.ts 直接执行 SQL，plugin 在 Rust 侧原生跑）
+- **数据库**：SQLite（通过 tauri-plugin-sql；前端 db.ts 直接执行 SQL，plugin 在 Rust 侧原生跑）。迁移清单在 `src-tauri/src/migrations.rs`：SQL 注册前统一转 LF，启动时把库里已应用版本的校验和改写成当前值——sqlx 按 SQL 原始字节算 SHA-384，本地构建嵌工作区行尾、CI 嵌 CRLF，同一条迁移两种校验和会让升级后 VersionMismatch、后续迁移一条不跑（3.0.0 升级即踩，issue #1：notes 缺 uuid 列）；`.gitattributes` 钉 `*.sql` 为 LF。前端 db.ts 只 load 一次、失败停在错误页：插件 load 是先摘迁移表再执行，失败后再 load 会不带迁移连上旧表结构
 - **Tauri 插件**：log, notification, sql(sqlite), dialog, fs, opener, updater, process
 - **发布状态**：v2.0.0 已于 2026-07-28 正式发布。仓库最终名 `zexadev/lapisnote`（jdnotes → lapis → lapisnote，lapis 与既有 GitHub 项目及商业软件撞名故加 note 后缀；应用品牌仍叫 Lapis）。Release 资产齐全（exe/msi + 双 sig + latest.json）、updater 端点已验证 200。旧地址 `zexadev/jdnotes`、`zexadev/lapis` 均由 GitHub 自动重定向，**这两个旧名永不复用**（复用即断老版本 updater 的重定向链）。
 
@@ -55,6 +55,7 @@
 | `src-tauri/src/sync.rs` | 多设备同步内核（局域网 TCP + iroh 跨网 + 同步包文件、三路合并、设备 ID 持久化、probe、mDNS 自动发现、持久 fingerprint）。iroh 端点在 N0 预设之外加了 HTTPS pkarr 解析器：走 TUN/代理的机器系统 DNS 常吞 TXT 查询，只靠 DNS 会报 `No addressing information available`（本机 xray_tun 实测）；发起端统一 `parse_remote_package` 识别对端的 PAIRING_REQUIRED |
 | `src-tauri/src/attachments.rs` | 图片附件内容寻址存储（sha256） |
 | `src-tauri/migrations/004_sync.sql`·`005_sync_merge.sql`·`006_private.sql` | 同步 uuid + 三路合并基准/冲突标记 + 私有笔记标记 |
+| `src-tauri/src/migrations.rs` | 迁移清单（LF 归一）+ 启动时改写 `_sqlx_migrations` 校验和，附单元测试（旧行尾建到版本 3 的库不修则 VersionMismatch、修后 uuid 列出现）；见基建「数据库」条 |
 | `src/pages/SettingsPage.tsx` | 设置页左侧导航容器（应用实际使用的设置 UI） |
 | `src/pages/settings/SyncSettings.tsx` | 设置「设备同步」页（mDNS 自动发现 / 跨网设备列表 / 同步包 / 清理图片） |
 | `src/components/modals/NoteSelectModal.tsx` | 局域网笔记多选同步弹窗（搜索/全选/单选/卡片勾选，自动排除私有笔记） |
