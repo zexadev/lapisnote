@@ -43,7 +43,9 @@
 
 ## 📖 简介
 
-**Lapis** 是一款本地优先的笔记应用（Tauri 2 构建），桌面与手机同一套功能。支持局域网 + 跨网 P2P 加密多设备同步，AI 可经 MCP 直接读写你的笔记库。数据本地存储，隐私安全。
+**Lapis**（GitHub 仓库 `lapisnote`，前身 JDNotes）是一款本地优先的笔记应用（Tauri 2 构建），桌面与手机同一套功能。支持局域网 + 跨网 P2P 加密多设备同步，AI 可经 MCP 直接读写你的笔记库。数据本地存储，隐私安全。
+
+> **Lapis** (repository `lapisnote`, formerly JDNotes) — local-first notes for Windows / Android / iOS with a Markdown editor, a built-in AI assistant, encrypted P2P sync and an MCP server for Claude Code / Cursor. Official repository: [github.com/zexadev/lapisnote](https://github.com/zexadev/lapisnote); forks are not maintained by this project.
 
 > **前身是 jdnotes（JD Notes）**：自 2.0 起更名为 Lapis。同一应用、同一套数据，老版本直接安装新版即可升级，笔记原样保留。
 

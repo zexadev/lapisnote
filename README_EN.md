@@ -43,7 +43,9 @@
 
 ## About
 
-**Lapis** is a local-first note-taking app built with Tauri 2, with the same feature set on desktop and mobile. Sync across devices over LAN or encrypted P2P — and let AI agents read and write your local notes via MCP. All data is stored locally on your device — no cloud, no tracking, full privacy.
+**Lapis** (GitHub repository `lapisnote`, formerly JDNotes) is a local-first note-taking app built with Tauri 2, with the same feature set on desktop and mobile. Sync across devices over LAN or encrypted P2P — and let AI agents read and write your local notes via MCP. All data is stored locally on your device — no cloud, no tracking, full privacy.
+
+> 官方仓库：[github.com/zexadev/lapisnote](https://github.com/zexadev/lapisnote)，发版与 issue 都在这里，各 fork 不由本仓维护 · 本地优先笔记，Windows / Android / iOS 三端同功能，内置 AI 助手、P2P 加密同步与 MCP 服务。
 
 > **Formerly jdnotes (JD Notes)**: renamed to Lapis as of 2.0. Same app, same data — existing installs upgrade in place, all notes preserved.
 
